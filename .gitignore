@@ -1,0 +1,13 @@
+# secrets
+.env
+
+# build output
+/bin/
+*.test
+*.out
+coverage.*
+
+# editors / OS
+.idea/
+.vscode/
+.DS_Store

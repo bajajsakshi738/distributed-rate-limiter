@@ -1,0 +1,47 @@
+{{template "header" "Run"}}
+{{with .Run}}
+<p><a href="/admin">← Admin</a></p>
+<h1>Run #{{.ID}} <span class="muted">{{fmtTime .StartedAt}} · {{.Status}}</span></h1>
+<p class="run-desc">{{.Clients}} clients on the <b>{{.PlanName}}</b> plan ({{.LimitDesc}}), {{.Algorithm}}, store <b>{{.Store}}</b>,
+{{.Pattern}} load at {{.RPS}} req/s for {{.DurationS}}s.</p>
+{{end}}
+<div class="panel"><div class="chart-wrap">{{.Chart}}</div>
+<div class="legend"><span class="key allowed"></span>allowed / s <span class="key rejected"></span>rejected (429) / s</div></div>
+
+{{with .Run}}
+<div class="tiles">
+  <div class="tile"><span class="label">Sent</span><span class="num">{{.Sent}}</span></div>
+  <div class="tile"><span class="label">Allowed</span><span class="num c-allowed">{{.Allowed}}</span></div>
+  <div class="tile"><span class="label">Rejected</span><span class="num c-rejected">{{.Rejected}}</span></div>
+  <div class="tile"><span class="label">Errors</span><span class="num">{{.Errors}}</span></div>
+  <div class="tile"><span class="label">Allowed / s (avg)</span><span class="num">{{$.AllowedPerSec}}</span></div>
+  <div class="tile"><span class="label">Client p50 / p99</span><span class="num small">{{us .P50us}} / {{us .P99us}}</span></div>
+  <div class="tile"><span class="label">Redis limiter call p99 (server-side)</span><span class="num small">{{us .LimiterP99us}}</span></div>
+  <div class="tile"><span class="label">Peak in any 1s, one client</span><span class="num">{{intp .Peak1sAllowed}}</span></div>
+</div>
+{{end}}
+<p class="hint">Client latency is measured by the load generator from each request's scheduled send time, through nginx.
+Markers are approximate: instances apply a store switch within about 2 seconds.
+Redis limiter p99 is from the instances' own histogram around the Redis limiter call only (no network hop through nginx), estimated from histogram buckets.</p>
+
+<section class="card">
+  <h2>Per instance</h2>
+  <table class="compact">
+    <thead><tr><th>Instance</th><th class="r">Allowed</th><th class="r">Rejected</th><th class="r">Errors</th></tr></thead>
+    <tbody>{{range .Instances}}<tr><td class="mono">{{.Instance}}</td><td class="r mono">{{.Allowed}}</td><td class="r mono">{{.Rejected}}</td><td class="r mono">{{.Errors}}</td></tr>{{end}}</tbody>
+  </table>
+</section>
+
+{{if eq .Run.Status "done"}}
+<section class="card">
+  <h2>Pin as the showcase replay</h2>
+  <form method="post" action="/admin/runs/{{.Run.ID}}/pin" class="form">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <label>Note shown with the replay <input type="text" name="note" maxlength="200" value="{{.Run.Note}}"></label>
+    <label>Marker second (blank keeps the recorded one) <input type="number" name="marker_second" min="0" max="3600" value=""></label>
+    <label>Marker label <input type="text" name="marker_label" maxlength="60" value="{{.Run.MarkerLabel}}"></label>
+    <button type="submit">Pin this run</button>
+  </form>
+</section>
+{{end}}
+{{template "footer"}}

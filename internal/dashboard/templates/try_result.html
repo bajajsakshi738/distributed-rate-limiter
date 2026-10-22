@@ -1,0 +1,6 @@
+{{define "try_line"}}{{if .Problem}}<div class="res err"><span class="code">–</span><span class="what">error</span><span class="meta">{{.Problem}}</span></div>
+{{else if .Allowed}}<div class="res ok"><span class="code">{{.Code}}</span><span class="what">allowed</span><span class="meta">answered by {{.Instance}} · {{.Left}} left</span></div>
+{{else if eq .Code 429}}<div class="res no"><span class="code">{{.Code}}</span><span class="what">blocked</span><span class="meta">answered by {{.Instance}} · try again in {{.RetryIn}}s</span></div>
+{{else}}<div class="res err"><span class="code">{{.Code}}</span><span class="what">error</span><span class="meta">answered by {{.Instance}}</span></div>
+{{end}}{{end}}{{template "try_line" .}}
+<div id="try-latest" class="latest" aria-live="polite" hx-swap-oob="true">{{template "try_line" .}}</div>

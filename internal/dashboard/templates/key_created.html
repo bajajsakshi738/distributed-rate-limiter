@@ -1,0 +1,10 @@
+{{template "header" "Key created"}}
+<h1>Key created</h1>
+<section class="card">
+  <p>Copy this key now. It won't be shown again; only its hash is stored.</p>
+  <pre class="key">{{.Key}}</pre>
+  <p>Owner <b>{{.Info.Owner}}</b>, plan <b>{{.Info.Plan}}</b>.</p>
+  <p class="hint">Use it as: <code>curl -H "Authorization: Bearer &lt;key&gt;" https://your-domain/api/data</code></p>
+  <p><a href="/admin">← Back to admin</a></p>
+</section>
+{{template "footer"}}

@@ -1,0 +1,182 @@
+/* Dashboard styles. No inline styles anywhere, so the Content Security
+   Policy can stay strict (style-src 'self'). */
+
+:root {
+  --bg: #f4f2ee;
+  --surface: #fffdf9;
+  --ink: #1d1c1a;
+  --muted: #6d6a64;
+  --line: #e2ded6;
+  --grid: #ebe7df;
+  --allowed: #1f8a4c;
+  --rejected: #c8372d;
+  --replay: #a86b00;
+  --accent: #2b4c7e;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141412;
+    --surface: #1c1c19;
+    --ink: #ecebe6;
+    --muted: #9b988f;
+    --line: #2f2e2a;
+    --grid: #262521;
+    --allowed: #3fbf74;
+    --rejected: #ef6a5f;
+    --replay: #e0a43a;
+    --accent: #8fb1e6;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+main { max-width: 1180px; margin: 0 auto; padding: 8px 16px 40px; }
+a { color: var(--accent); }
+h1 { font-size: 1.6rem; margin: 18px 0 8px; letter-spacing: -0.01em; }
+h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+.muted { color: var(--muted); font-weight: normal; }
+.mono { font-family: var(--mono); font-size: 0.85em; }
+.r { text-align: right; }
+.hint { color: var(--muted); font-size: 0.85rem; margin: 8px 0 0; }
+.c-allowed { color: var(--allowed); }
+.c-rejected { color: var(--rejected); }
+
+.top { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; max-width: 1180px; margin: 0 auto; }
+.brand { font-weight: 700; font-size: 1.15rem; color: var(--ink); text-decoration: none; letter-spacing: -0.02em; }
+.brand span { color: var(--rejected); }
+nav a { margin-left: 18px; color: var(--muted); text-decoration: none; }
+nav a:hover { color: var(--ink); }
+.foot { max-width: 1180px; margin: 0 auto; padding: 16px; color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--line); }
+
+.intro p { max-width: 760px; color: var(--muted); margin-top: 0; }
+
+.panel, .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin: 14px 0; }
+.banner { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.banner .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+.mode-live .dot { background: var(--allowed); box-shadow: 0 0 0 4px color-mix(in srgb, var(--allowed) 20%, transparent); }
+.mode-replay { border: 2px dashed var(--replay); }
+.mode-replay .dot { background: var(--replay); }
+.mode-replay .banner-text { color: var(--replay); }
+.clock { margin-left: auto; white-space: nowrap; font-family: var(--mono); font-weight: normal; color: var(--muted); }
+.run-desc { color: var(--muted); margin: 6px 0 0; font-size: 0.9rem; }
+.note { display: block; color: var(--ink); margin-top: 4px; }
+
+.chart-wrap { margin-top: 10px; }
+.chart { width: 100%; height: auto; display: block; }
+.chart .grid { stroke: var(--grid); stroke-width: 1; }
+.chart .axis { fill: var(--muted); font: 11px var(--mono); }
+.chart polyline { fill: none; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .allowed { stroke: var(--allowed); }
+.chart .rejected { stroke: var(--rejected); }
+.chart .limit { stroke: var(--muted); stroke-dasharray: 4 4; }
+.chart .limit-label { fill: var(--muted); font: 11px var(--mono); }
+.chart .marker { stroke: var(--replay); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.chart .marker-label { fill: var(--replay); font: 600 12px var(--sans); }
+.chart .empty { fill: var(--muted); font: 14px var(--sans); }
+.legend { color: var(--muted); font-size: 0.82rem; margin-top: 6px; }
+.legend .key { display: inline-block; width: 14px; height: 3px; margin: 0 6px 3px 12px; vertical-align: middle; }
+.legend .key:first-child { margin-left: 0; }
+.legend .allowed { background: var(--allowed); }
+.legend .rejected { background: var(--rejected); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 14px 0; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; }
+.tile .label { color: var(--muted); font-size: 0.78rem; }
+.tile .num { font: 600 1.6rem var(--mono); letter-spacing: -0.02em; }
+.tile .num.small { font-size: 1.05rem; padding-top: 8px; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; }
+@media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } }
+section { min-width: 0; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th { text-align: left; color: var(--muted); font-weight: 500; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+td { padding: 6px 8px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+table.compact td { padding: 4px 8px; }
+.card table, section > table { display: block; overflow-x: auto; }
+
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+.pill.ok { background: color-mix(in srgb, var(--allowed) 15%, transparent); color: var(--allowed); }
+.pill.bad { background: color-mix(in srgb, var(--rejected) 15%, transparent); color: var(--rejected); }
+.pill.warn { background: color-mix(in srgb, var(--replay) 18%, transparent); color: var(--replay); }
+
+.flash { padding: 10px 14px; border-radius: 8px; }
+.flash.ok { background: color-mix(in srgb, var(--allowed) 12%, transparent); }
+.flash.bad { background: color-mix(in srgb, var(--rejected) 12%, transparent); }
+.flash.warn { background: color-mix(in srgb, var(--replay) 14%, transparent); }
+
+.form { display: grid; gap: 10px; }
+.form label { display: grid; gap: 4px; font-size: 0.85rem; color: var(--muted); }
+input, select, button { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+td input { width: 110px; }
+button { background: var(--ink); color: var(--bg); border-color: var(--ink); cursor: pointer; font-weight: 600; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.danger { background: transparent; color: var(--rejected); border-color: var(--rejected); padding: 2px 8px; }
+form.inline { display: inline; }
+pre.key { font: 600 1rem var(--mono); background: var(--bg); padding: 12px; border-radius: 8px; overflow-x: auto; border: 1px solid var(--line); }
+code { font-family: var(--mono); font-size: 0.85em; }
+
+/* "Try it yourself" results */
+.try p { color: var(--muted); margin: 4px 0 12px; max-width: 640px; }
+.try button { padding: 8px 16px; }
+.results { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; font-family: var(--mono); font-size: 0.86rem; }
+.res { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.res .code { font-weight: 700; width: 3.2em; }
+.res .what { min-width: 6.5em; }
+.res .meta { color: var(--muted); }
+.res.ok .code { color: var(--allowed); }
+.res.no .code, .res.err .code { color: var(--rejected); }
+
+/* ---- live view ---- */
+.panel .tiles { grid-template-columns: repeat(4, 1fr); margin: 14px 0 6px; }
+.panel .tile { background: var(--bg); }
+.tile .sub { color: var(--muted); font-size: 0.75rem; }
+@media (max-width: 700px) { .panel .tiles { grid-template-columns: 1fr 1fr; } }
+.clock { white-space: nowrap; }
+.servers { display: flex; gap: 18px; flex-wrap: wrap; margin: 12px 0 0; font: 0.82rem var(--mono); color: var(--muted); }
+.srv { display: inline-flex; align-items: center; gap: 6px; }
+.srv i { width: 7px; height: 7px; border-radius: 50%; background: var(--allowed); }
+.srv.down { color: var(--rejected); }
+.srv.down i { background: var(--rejected); }
+.warn { margin: 10px 0 0; color: var(--replay); font-weight: 600; }
+@media (max-width: 520px) {
+  .chart .axis, .chart .limit-label, .chart .marker-label { font-size: 20px; }
+  .chart polyline { stroke-width: 5; }
+  .tile .num { font-size: 1.35rem; }
+  .results { font-size: 0.78rem; }
+  .res { gap: 8px; flex-wrap: nowrap; }
+  .res .code { width: 2.6em; flex: none; }
+  .res .what { min-width: 0; flex: none; }
+  .res .meta { flex: 1; min-width: 0; }
+}
+/* The try card sits above the chart: keep only the newest 6 results. */
+.results .res:nth-child(n+7) { display: none; }
+/* "Your requests" sits under the chart and stays hidden until the first click. */
+.try-out:not(:has(.res)) { display: none; }
+.try-out .results { margin-top: 0; }
+
+/* Send-a-request button: visible feedback on hover, click and while sending. */
+.try-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.try button { transition: transform 0.08s ease, opacity 0.15s ease; }
+.try button:hover { opacity: 0.85; }
+.try button:active { transform: scale(0.96); }
+.try button .busy { display: none; }
+.try button.htmx-request { opacity: 0.7; cursor: progress; }
+.try button.htmx-request .idle { display: none; }
+.try button.htmx-request .busy { display: inline; }
+
+/* The newest result, shown next to the button. A new element arrives on every
+   click, so the highlight replays each time, even for two 429s in a row. */
+.latest { font-family: var(--mono); font-size: 0.86rem; }
+.latest .res { padding: 4px 10px; border-radius: 6px; animation: flash 0.6s ease-out; }
+.latest .res.ok { background: color-mix(in srgb, var(--allowed) 12%, transparent); }
+.latest .res.no, .latest .res.err { background: color-mix(in srgb, var(--rejected) 12%, transparent); }
+@keyframes flash {
+  from { transform: scale(1.04); filter: brightness(1.15); }
+  to   { transform: scale(1); filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .try button, .latest .res { transition: none; animation: none; }
+}

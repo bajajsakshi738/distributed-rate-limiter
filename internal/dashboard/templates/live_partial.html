@@ -1,0 +1,29 @@
+<div class="panel mode-{{.Mode}}">
+  <div class="banner">
+    <span class="banner-text">{{.Banner}}</span>
+    {{if .ReplayClock}}<span class="clock">{{.ReplayClock}}</span>{{end}}
+  </div>
+  {{if eq .Mode "replay"}}{{with .Run}}<p class="run-desc">Store: {{.Store}} · {{if eq .Pattern "steady"}}{{.RPS}} req/s{{else}}bursts at each second{{end}}{{if .LimitDesc}} · limit {{.LimitDesc}}{{end}}{{if .Note}}<span class="note">{{.Note}}</span>{{end}}</p>{{end}}
+  {{else if .Store}}<p class="run-desc">Store: {{.Store}}</p>{{end}}
+
+  <div class="tiles">
+    <div class="tile"><span class="label">Allowed</span><span class="num c-allowed">{{comma .Allowed60}}</span>
+      <span class="sub">{{if eq .Mode "replay"}}so far in this test{{else if .SinceStart}}since this test started{{else}}last 60 seconds{{end}}</span></div>
+    <div class="tile"><span class="label">Rejected (429)</span><span class="num c-rejected">{{comma .Rejected60}}</span>
+      <span class="sub">{{if eq .Mode "replay"}}so far in this test{{else if .SinceStart}}since this test started{{else}}last 60 seconds{{end}}</span></div>
+    <div class="tile"><span class="label">Got through</span><span class="num">{{.Ratio}}</span>
+      <span class="sub">{{if eq .Ratio "–"}}shown during a load test{{else}}of the limit{{end}}</span></div>
+    <div class="tile"><span class="label">Key cache hits</span><span class="num">{{.CacheHitRate}}</span>
+      <span class="sub">lookups that skipped Postgres</span></div>
+  </div>
+
+  <div class="chart-wrap">{{.Chart}}</div>
+  <div class="legend"><span class="key allowed"></span>allowed <span class="key rejected"></span>rejected (429)</div>
+
+  {{if ne .Mode "replay"}}
+  {{if .RedisDown}}<p class="warn">Redis is unreachable. Each server is limiting on its own ({{.FailureMode}} mode).</p>{{end}}
+  <p class="servers">
+    {{range .Instances}}<span class="srv {{if .OK}}up{{else}}down{{end}}"><i></i>{{.Name}}{{if not .OK}} {{.Status}}{{end}}</span>{{end}}
+  </p>
+  {{end}}
+</div>

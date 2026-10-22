@@ -1,0 +1,30 @@
+# Caddy terminates HTTPS (certificates from Let's Encrypt, renewed
+# automatically) and routes:
+#   /api/* and /healthz  -> nginx -> the 3 API instances
+#   /admin               -> 404 (not exposed; use an SSH tunnel, see docs/DEPLOY.md)
+#   everything else      -> dashboard (public, read-only pages)
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	@api path /api/* /healthz
+	handle @api {
+		reverse_proxy nginx:8080
+	}
+
+	# The admin pages are never reachable from the internet, so nobody can
+	# brute-force them or keep them locked with failed logins.
+	@admin path /admin /admin/*
+	handle @admin {
+		respond 404
+	}
+
+	handle {
+		reverse_proxy dashboard:8000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}

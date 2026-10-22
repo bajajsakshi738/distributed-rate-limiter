@@ -1,0 +1,128 @@
+{{template "header" "Admin"}}
+<h1>Admin</h1>
+<p class="hint">In production this page is not exposed by Caddy; reach it through an SSH tunnel (see docs/DEPLOY.md).</p>
+{{if .Msg}}<p class="flash ok">{{.Msg}}</p>{{end}}
+{{if .Err}}<p class="flash bad">{{.Err}}</p>{{end}}
+
+<div class="grid2">
+<section class="card">
+  <h2>Start a load test</h2>
+  {{if .RunActive}}<p class="flash warn">A load test is running. <a href="/">Watch it live</a>.</p>{{end}}
+  <form method="post" action="/admin/loadtest" class="form">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <label>Plan <select name="plan">{{range .Plans}}<option value="{{.Name}}">{{.Name}}</option>{{end}}</select></label>
+    <label>Clients (API keys) <input type="number" name="clients" value="5" min="1" max="{{.MaxClients}}" required></label>
+    <label>Pattern
+      <select name="pattern">
+        <option value="steady">steady: constant total rate</option>
+        <option value="boundary">boundary: bursts around each second</option>
+      </select>
+    </label>
+    <label>Requests per second (steady) or per burst, per client (boundary)
+      <input type="number" name="rps" value="300" min="1" max="{{.MaxRPS}}" required></label>
+    <label>Duration, seconds <input type="number" name="duration" value="30" min="1" max="{{.MaxSeconds}}" required></label>
+    <button type="submit" {{if .RunActive}}disabled{{end}}>Start</button>
+  </form>
+  <p class="hint">Traffic always goes to the internal load balancer; the target can't be changed. Caps: {{.MaxRPS}} req/s, {{.MaxSeconds}}s, {{.MaxClients}} clients, one run at a time.</p>
+</section>
+
+<section class="card">
+  <h2>Limiter settings</h2>
+  <form method="post" action="/admin/settings" class="form">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <label>Store
+      <select name="store">
+        <option value="memory" {{if eq .ActiveStore "memory"}}selected{{end}}>memory: each instance counts alone (the bug)</option>
+        <option value="redis" {{if eq .ActiveStore "redis"}}selected{{end}}>redis: shared counts (the fix)</option>
+      </select>
+    </label>
+    <label>When Redis fails
+      <select name="failure_mode">
+        <option value="fallback" {{if eq (print .Settings.FailureMode) "fallback"}}selected{{end}}>fallback: limit locally at limit ÷ instances</option>
+        <option value="open" {{if eq (print .Settings.FailureMode) "open"}}selected{{end}}>open: allow everything</option>
+        <option value="closed" {{if eq (print .Settings.FailureMode) "closed"}}selected{{end}}>closed: reject everything</option>
+      </select>
+    </label>
+    <button type="submit">Save</button>
+  </form>
+  <p class="hint">Changing the store during a load test records a marker on that run, so the replay shows the switch.</p>
+</section>
+</div>
+
+<section class="card">
+  <h2>Rules</h2>
+  <table>
+    <thead><tr><th>Rule</th><th>Algorithm</th><th>Limit</th><th>Window (ms)</th><th>Burst (0 = limit)</th><th></th></tr></thead>
+    <tbody>
+    {{range .Rules}}
+    <tr>
+      <td><b>{{.Name}}</b>
+        <form method="post" action="/admin/rules/{{.ID}}" id="rule-{{.ID}}"><input type="hidden" name="csrf_token" value="{{$.CSRF}}"></form></td>
+      <td><select name="algorithm" form="rule-{{.ID}}">
+        <option value="token_bucket" {{if eq (print .Algorithm) "token_bucket"}}selected{{end}}>token bucket</option>
+        <option value="fixed_window" {{if eq (print .Algorithm) "fixed_window"}}selected{{end}}>fixed window</option>
+      </select></td>
+      <td><input type="number" name="limit" value="{{.Limit}}" min="1" max="1000000" required form="rule-{{.ID}}"></td>
+      <td><input type="number" name="window_ms" value="{{ms .Window}}" min="100" max="86400000" required form="rule-{{.ID}}"></td>
+      <td><input type="number" name="burst" value="{{.Burst}}" min="0" max="1000000" required form="rule-{{.ID}}"></td>
+      <td><button type="submit" form="rule-{{.ID}}">Save</button></td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+</section>
+
+<div class="grid2">
+<section class="card">
+  <h2>Create an API key</h2>
+  <form method="post" action="/admin/keys" class="form">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <label>Owner <input type="text" name="owner" maxlength="64" required placeholder="e.g. demo-client"></label>
+    <label>Plan <select name="plan">{{range .Plans}}<option value="{{.Name}}">{{.Name}}</option>{{end}}</select></label>
+    <button type="submit">Create key</button>
+  </form>
+  <p class="hint">The full key is shown once. Only its SHA-256 hash is stored.</p>
+</section>
+<section class="card">
+  <h2>API keys</h2>
+  {{if .Keys}}
+  <table class="compact">
+    <thead><tr><th>Key</th><th>Owner</th><th>Plan</th><th>Created</th><th></th></tr></thead>
+    <tbody>
+    {{range .Keys}}
+    <tr>
+      <td class="mono">{{.Prefix}}…</td><td>{{.Owner}}</td><td>{{.Plan}}</td><td>{{fmtTime .CreatedAt}}</td>
+      <td>{{if .Revoked}}<span class="pill bad">revoked</span>{{else}}
+        <form method="post" action="/admin/keys/{{.ID}}/revoke" class="inline">
+          <input type="hidden" name="csrf_token" value="{{$.CSRF}}"><button type="submit" class="danger">Revoke</button>
+        </form>{{end}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="muted">No keys yet. Load tests create their own temporary keys.</p>{{end}}
+</section>
+</div>
+
+<section class="card">
+  <h2>Load test runs</h2>
+  {{if .Runs}}
+  <table class="compact">
+    <thead><tr><th>#</th><th>Started</th><th>Store</th><th>Algorithm</th><th>Load</th><th class="r">Allowed</th><th class="r">Rejected</th><th class="r">Errors</th><th class="r">Client p99</th><th class="r">Redis limiter p99</th><th class="r">Peak 1s / client</th><th>Showcase</th></tr></thead>
+    <tbody>
+    {{range .Runs}}
+    <tr>
+      <td><a href="/admin/runs/{{.ID}}">{{.ID}}</a></td>
+      <td>{{fmtTime .StartedAt}}</td>
+      <td>{{.Store}}</td><td>{{.Algorithm}}</td>
+      <td>{{.Clients}} × {{.PlanName}}, {{.Pattern}} {{.RPS}}, {{.DurationS}}s</td>
+      <td class="r mono">{{.Allowed}}</td><td class="r mono">{{.Rejected}}</td><td class="r mono">{{.Errors}}</td>
+      <td class="r mono">{{us .P99us}}</td><td class="r mono">{{us .LimiterP99us}}</td><td class="r mono">{{intp .Peak1sAllowed}}</td>
+      <td>{{if .IsShowcase}}<span class="pill ok">pinned</span>{{else if eq .Status "done"}}<a href="/admin/runs/{{.ID}}">pin…</a>{{else}}<span class="muted">{{.Status}}</span>{{end}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="muted">No runs yet.</p>{{end}}
+</section>
+{{template "footer"}}

@@ -1,0 +1,28 @@
+{{template "header" "Live"}}
+<section class="intro">
+  <h1>Is the limit holding?</h1>
+  <p>Three API servers share one rate limit. When each server counts on its own, about 3× the limit gets through.
+  When they share the count in Redis, it holds.</p>
+</section>
+{{if .Try}}
+<section class="card try">
+  <h2>Try it yourself</h2>
+  <p>Each click sends one real request to the API.{{if .TryLimit}} This demo key allows {{.TryLimit}}.{{end}} Click a few times quickly and you'll get blocked.</p>
+  <div class="try-row">
+    <button type="button" hx-post="/try" hx-target="#try-results" hx-swap="afterbegin">
+      <span class="idle">Send a request</span><span class="busy">Sending…</span>
+    </button>
+    <div id="try-latest" class="latest" aria-live="polite"></div>
+  </div>
+</section>
+{{end}}
+<div id="live" hx-get="/partials/live" hx-trigger="load, every 1s" hx-swap="innerHTML">
+  <p class="muted">Loading…</p>
+</div>
+{{if .Try}}
+<section class="card try-out">
+  <h2>Your requests</h2>
+  <div id="try-results" class="results"></div>
+</section>
+{{end}}
+{{template "footer"}}
