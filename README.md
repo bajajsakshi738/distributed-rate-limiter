@@ -72,5 +72,3 @@ under the limit while in-memory mode lets about 3x through. CI runs the tests, `
 - Everything runs on one machine, so there's no real network latency between instances.
 - The fallback limit assumes traffic is spread evenly across instances.
 - Fixed window can let up to 2x through around a window boundary (that's why token bucket is the default).
-
-More detail on the design choices is in [docs/DESIGN.md](docs/DESIGN.md).
